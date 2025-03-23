@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-
 import Form from "@components/Form";
 
 const UpdatePrompt = () => {
@@ -15,38 +14,40 @@ const UpdatePrompt = () => {
 
   useEffect(() => {
     const getPromptDetails = async () => {
-      const response = await fetch(`/api/prompt/${promptId}`);
-      const data = await response.json();
-
-      setPost({
-        prompt: data.prompt,
-        tag: data.tag,
-      });
+      if (!promptId) return;
+      try {
+        const response = await fetch(`/api/prompt/${promptId}`);
+        if (!response.ok) throw new Error("Failed to fetch prompt details");
+        const data = await response.json();
+        setPost({ prompt: data.prompt, tag: data.tag });
+      } catch (error) {
+        console.error(error);
+      }
     };
 
-    if (promptId) getPromptDetails();
+    getPromptDetails();
   }, [promptId]);
 
   const updatePrompt = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    if (!promptId) return alert("Missing PromptId!");
+    if (!promptId) {
+      alert("Missing PromptId!");
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       const response = await fetch(`/api/prompt/${promptId}`, {
         method: "PATCH",
-        body: JSON.stringify({
-          prompt: post.prompt,
-          tag: post.tag,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: post.prompt, tag: post.tag }),
       });
 
-      if (response.ok) {
-        router.push("/");
-      }
+      if (response.ok) router.push("/");
     } catch (error) {
-      console.log(error);
+      console.error("Error updating prompt:", error);
     } finally {
       setIsSubmitting(false);
     }
