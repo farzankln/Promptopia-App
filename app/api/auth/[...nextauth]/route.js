@@ -11,7 +11,6 @@ const handler = NextAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
   ],
-  debug: true,
   callbacks: {
     async session({ session }) {
       // store the user id from MongoDB to session
